@@ -20,7 +20,7 @@ The QMK repository repository is used as primary source of truth for Bastard Key
 The maintainers aim at upstreaming all those changes to the official [QMK repository](https://github.com/qmk/qmk_firmware).
 
 This page details how to build your own firmware. 
-Building from source is useful to people who want to customize their keyboard and keymaps beyond what Via offers. 
+Building from source is useful to people who want to customize their keyboard and keymaps beyond what Argos offers. 
 You will have to modify the keymap `C` code, and from there compile your firmware either using Github actions or the local command line.
 
 If that seems too complicated, you can also use one of the [release firmware](https://github.com/Bastardkb/qmk_userspace/releases/latest) builds.
@@ -71,7 +71,7 @@ By using github actions, you can have Github compile your firmware without havin
 
 If you want to use Github actions to compile your firmware (rather than doing it locally in the console), you will need to:
 
-- fork the BastardKB QMK Userspace repository
+- fork the [BastardKB QMK userspace repository][bkbus]
 - **in the `Actions` tab, enable workflows**
 
 
@@ -114,12 +114,12 @@ Make sure you have a functional QMK environment. See [QMK Docs](https://docs.qmk
 
 ### BastardKB QMK fork
 
-Clone the BKB QMK repository, using either github desktop or the command line, and switch to the `bkb-master` branch:
+Clone the BKB QMK repository, using either github desktop or the command line, and switch to the `main` branch:
 
 ```shell
 git clone https://github.com/bastardkb/bastardkb-qmk
 cd bastardkb-qmk
-git checkout -b bkb-master origin/bkb-master
+git checkout -b main origin/main
 qmk git-submodule
 ```
 
@@ -136,6 +136,12 @@ That's all you needed to do with the QMK repository.
 From here on, **we will only focus on the userspace repository.**
 
 ### QMK Userspace
+
+You will need to create a fork of [the BKB userspace](https://github.com/Bastardkb/qmk_userspace).
+
+- if you are using Argos, you will need the [argos module](https://github.com/Bastardkb/qmk_modules)
+- if you are using a trackball or trackpad, you will need the [pointing device module](https://github.com/Bastardkb/qmk_modules)
+- you can read on how to add modules to your userspace in the [official QMK documentation](https://docs.qmk.fm/features/community_modules)
 
 Next, `cd` into your userspace fork and enable userspace:
 
@@ -155,14 +161,16 @@ qmk compile -c -kb bastardkb/{keyboard} -km {keymap}
 
 `{keyboard}` corresponds to the physical keyboard you are building the firmware for. It can be one of the following:
 
-- `charybdis/4x6`: the 4x6+5 [Charybdis](https://github.com/bastardkb/charybdis/)
-- `charybdis/3x5`: the 3x5+3 [Charybdis Nano](https://github.com/bastardkb/charybdis/)
-- `charybdis/3x6`: the 3x6+3 [Charybdis Mini](https://github.com/bastardkb/charybdis/)
-- `scylla`: the 4x6+5 [Scylla](https://github.com/Bastardkb/Scylla)
-- `skeletyl`: the 3x5+3 [Skeletyl](https://github.com/Bastardkb/Skeletyl/)
-- `tbkmini`: the 3x6+3 [TBK Mini](https://github.com/Bastardkb/TBK-Mini/)
+- `charybdis/4x6/splinktegrated_rev1`: the 4x6+5 [Charybdis](https://github.com/bastardkb/charybdis/)
+- `charybdis/3x5/splinktegrated_rev1`: the 3x5+3 [Charybdis Nano](https://github.com/bastardkb/charybdis/)
+- `charybdis/3x6/splinktegrated_rev1`: the 3x6+3 [Charybdis Mini](https://github.com/bastardkb/charybdis/)
+- `scylla/splinktegrated_rev1`: the 4x6+5 [Scylla](https://github.com/Bastardkb/Scylla)
+- `skeletyl/splinktegrated_rev1`: the 3x5+3 [Skeletyl](https://github.com/Bastardkb/Skeletyl/)
+- `tbkmini/splinktegrated_rev1`: the 3x6+3 [TBK Mini](https://github.com/Bastardkb/TBK-Mini/)
 - `dilemma/3x5_3`: the 3x5+3 [Dilemma](https://github.com/bastardkb/dilemma/)
 - `dilemma/4x6_4`: the 4x6+4 [Dilemma Max](https://github.com/bastardkb/dilemma/)
+- `dilemma/3x5_3_procyon`: the 3x5+3 [Dilemma v3](https://github.com/bastardkb/dilemma/)
+- `dilemma/4x6_4_procyon`: the 4x6+4 [Dilemma Max v3](https://github.com/bastardkb/dilemma/)
 
 ### `{keymap}` argument
 
@@ -171,11 +179,53 @@ qmk compile -c -kb bastardkb/{keyboard} -km {keymap}
 
 If you followed the instructions until now, it would be `my-keymap`.
 
-# Contributing your own keymap
 
-If you are happy with your keymap and would like to share it, we would gladly review it!
+# Pointing (custom firmware)
 
-Just PR your fork to the origin BastardKB Userspace repository.
+Everyday pointing behavior is documented on the [Charybdis features]({{site.baseurl}}/fw/charybdis-features.html) page. Stock keymaps use the [pointing device community module](https://github.com/Bastardkb/qmk_modules) (`modules/bastardkb` in userspace).
+
+Mode IDs:
+
+```c
+enum {
+    MODE_NORMAL = 0,
+    MODE_SNIPING = 1,
+    MODE_DRAGSCROLL = 2,
+    MODE_CURSOR = 3,
+    MODE_BRIGHTNESS = 4,
+    MODE_ZOOM = 5,
+    MODE_VOLUME = 6,
+    MODE_TAB_SWITCH = 7,
+    MODE_HISTORY = 8,
+    MODE_CUSTOM1 = 9,
+    MODE_CUSTOM2 = 10,
+    MODE_CUSTOM3 = 11,
+    MODE_CUSTOM4 = 12,
+    MODE_CUSTOM5 = 13,
+    MODE_LAST = 14
+};
+```
+
+Helpers (they also write configuration to EEPROM):
+
+```c
+void bkpd_mode_cycle_dpi(uint8_t mode_id, bool forward);
+void bkpd_mode_toggle_active(uint8_t mode_id);
+void bkpd_mode_set_active(uint8_t id);
+void bkpd_mode_set_invert(uint8_t mode_id, uint8_t axis_index, bool invert); // X = 0, Y = 1
+```
+
+Do not use removed names such as `bkpd_set_pointer_sniping_enabled`. Auto mouse layer and auto precision from keymap C:
+
+```c
+bkpd_set_auto_precision_on_mouse_layer_enabled(bool enable);
+bkpd_set_auto_mouse_layer_enabled(bool enabled);
+
+#undef AUTO_MOUSE_DEFAULT_LAYER
+#define AUTO_MOUSE_DEFAULT_LAYER 4
+```
+
+Change `AUTO_MOUSE_DEFAULT_LAYER` only if your mouse layer is not the default.
 
 # Flashing your keyboard
 

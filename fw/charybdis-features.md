@@ -14,159 +14,152 @@ parent: Firmware
 
 All the features listed below are available in the Charybdis `vendor` keymaps.
 
-The `vendor` keymap aims at providing a consistent experience out of the box. Because some features can be mutually exclusive (e.g. [Auto sniping on layer](#auto-sniping-on-layer) and [Auto pointer layer](#auto-pointer-layer)), not all features are enabled by default. It may be necessary to rebuild the firmware to enable or disable some of the features listed below.
+The `vendor` keymap aims at providing a consistent experience out of the box. Because some features can be mutually exclusive (e.g. [Auto precision on mouse layer](#auto-precision-on-mouse-layer) and [Auto pointer layer](#auto-pointer-layer)), not all features are enabled by default. It may be necessary to rebuild the firmware to enable or disable some of the features listed below.
 
 # Charybdis features
 
 ## Charybdis stock keymap
 
-- the stock keymaps are built off the `vendor` keymaps, and come with VIA enabled
+- the stock keymaps are built off the `vendor` keymaps, and come with [Argos][argos] enabled. [You can read more about argos here][argosdocs].
 - you can find a visual reference of those keymaps on the [default keymaps page][keymaps]
 - you can find instructions on how to compile your own firmware on the [how to compile your firmware page][compile]
 
-## Trackball related features
+## Pointing module
 
-Custom features were developed for the Charybdis, and have since been ported to QMK core.
+The [Bastard Keyboards Pointing Module](https://github.com/Bastardkb/qmk_modules) is what runs the trackball and trackpad. It provides **pointing modes**: while a mode is active, movement is not a normal pointer (except precision, which is still a pointer, just slower).
 
-For each feature, there are:
+Only one primary mode is active at a time. **Precision** can stack on another mode and halves that mode’s DPI while it is held. Hold a mode key to use it while pressed; the matching `*_TOG` keycode stays on until you toggle it off.
 
-- custom keycodes you can implement in VIA or when [compiling your own firmware][compile]
-- custom defines to change the behavior of the feature
-- custom functions you can call to read or write options
+On the mouse layer, motion can also:
 
-Those are detailed below.
+{% include pointing_mode_inventory.md %}
 
-### DPI
+You can change DPI, invert axes, auto-activate a mode on a layer, and assign custom direction keys in [Argos][argosdocs] (no compile). For C, see [compiling your firmware][compile].
 
-DPI (i.e. dots per linear inch), a.k.a. mouse sensitivity, can be controlled by the firmware. The Charybdis keymap offers 2 different DPI settings:
+### Precision mode
 
-- **Default** DPI: the sensitivity of the pointer in normal mode.
-- **Sniping** DPI: the sensitivity of the pointer in [sniping mode](#sniping)
+**Precision mode** slows the pointer for fine movement. It is useful with a higher default DPI. Precision DPI can be changed at runtime (Argos or the keycodes below).
 
-For each mode, the firmware allows cycling through multiple pre-defined values.
-
-- Default mode:
-    - Default value: 400 DPI
-    - 16 steps available
-    - Increments of 200 DPI
-    - Total range from 400 to 3,400 (400 → 600 → 800 → … → 3,400)
-- Sniping mode:
-    - Default value: 200 DPI
-    - 4 steps available
-    - Increments of 100 DPI
-    - Total range from 200 to 500 (200 → 300 → 400 → 500)
-
-The firmware _cycles_ through these values, which means that, for example, incrementing the sniping DPI of `500` by 1 step will loop back to `200`.
-
-You can cycle through those values by using custom keycodes (also present in the default keymap), and also [modify those values in your own firmware if needed.](#changing-dynamic-dpi-scaling-default-and-increment-values].
-
-Custom keycodes:
-
-| Name   | Description                                                  |
-| ------ | ------------------------------------------------------------ |
-| `DPI_MOD` | increase the sensitivity of the pointer movement by one step |
-| `DPI_RMOD` | decrease the sensitivity of the pointer movement by one step |
-
-
-Custom defines (with default values):
-
-```
-#define CHARYBDIS_MINIMUM_DEFAULT_DPI 400
-#define CHARYBDIS_DEFAULT_DPI_CONFIG_STEP 200
-```
-
-Custom functions:
-
-```c
-charybdis_cycle_pointer_default_dpi(bool forward) // cycle forward or backward the possible values
-charybdis_cycle_pointer_default_dpi_noeeprom(bool forward) // cycle forward or backward the possible values without persisting the change to EEPROM
-charybdis_get_pointer_default_dpi() // returns the current DPI value
-```
-
-
-### Sniping
-
-**Sniping mode** slows down the pointer for more precise gestures. It is useful when combined with a higher default DPI. Like the default pointer's DPI, the sniper mode DPI can be changed at runtime
-
-Custom Keycodes:
-
-| Name   | Description                                                                  |
-| ------ | ---------------------------------------------------------------------------- |
-| `S_D_MOD` | increase the sensitivity of the pointer movement in sniping mode by one step |
-| `S_D_RMOD` | decrease the sensitivity of the pointer movement in sniping mode by one step |
-| `SNIPING`  | enable sniping mode as long as the key is pressed                            |
-| `SNP_TOG` | toggle sniping mode on and off                                               |
-
-
-Custom defines (with default values):
-
-```
-#define CHARYBDIS_MINIMUM_SNIPING_DPI 200
-#define CHARYBDIS_SNIPING_DPI_CONFIG_STEP 100
-```
-
-Custom functions:
-
-```c
-charybdis_set_pointer_sniping_enabled(bool enable) // enable/disable sniping mode
-charybdis_get_pointer_sniping_enabled() // returns whether sniping mode is currently enabled
-charybdis_cycle_pointer_sniping_dpi(bool forward) // cycle forward or backward the possible values
-charybdis_cycle_pointer_sniping_dpi_noeeprom(bool forward) // cycle forward or backward the possible values without persisting the change to EEPROM
-charybdis_get_pointer_sniping_dpi() // returns the current sniping mode DPI value
-```
-
-### Auto sniping on layer
-
-You can trigger sniping automatically when on a specific layer by adjusting the following in your keymap:
-
-```
-#define CHARYBDIS_AUTO_SNIPING_ON_LAYER LAYER_POINTER
-```
-
-### Auto pointer layer
-
-You can trigger the pointer layer automatically upon moving the trackball by adjusting the following in your keymap:
-
-```
-#define CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_ENABLE
-#define CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_TIMEOUT_MS 1000
-```
+| Name | Description |
+| --- | --- |
+| `SNIPING` | enable precision mode while the key is held |
+| `SNP_TOG` | toggle precision mode on and off |
+| `S_D_MOD` | increase precision-mode DPI by one step |
+| `S_D_RMOD` | decrease precision-mode DPI by one step |
 
 ### Drag-scroll
 
-**Drag-scroll** enables scrolling with the trackball. When drag-scroll is enabled, the trackball's `x` and `y` movements are converted into `h` (horizontal) and `v` (vertical) movement, effectively sending scroll instructions to the host system.
+**Drag-scroll** turns movement into scroll: `x`/`y` become `h`/`v` on the host.
 
-Custom keycodes:
+| Name | Description |
+| --- | --- |
+| `DRGSCRL` | enable drag-scroll while the key is held |
+| `DRG_TOG` | toggle drag-scroll on and off |
 
-| Name   | Description                                           |
-| ------ | ----------------------------------------------------- |
-| `DRGSCRL`  | enable drag-scroll mode as long as the key is pressed |
-| `DRG_TOG` | toggle drag-scroll mode on and off                    |
+### Cursor
 
-Custom functions:
+**Cursor mode** sends arrow keys: left, right, up, and down.
 
-```c
-charybdis_set_pointer_dragscroll_enabled(bool enable) // enable/disable drag-scroll
-charybdis_get_pointer_dragscroll_enabled() // returns whether drag-scroll mode is currently enabled
-```
+| Name | Description |
+| --- | --- |
+| `CURSOR` | enable cursor mode while the key is held |
+| `CUR_TOG` | toggle cursor mode on and off |
 
-Custom defines:
+### Brightness
 
-```
-#define CHARYBDIS_DRAGSCROLL_REVERSE_X // inverts horizontal scrolling 
-#define CHARYBDIS_DRAGSCROLL_REVERSE_Y // inverts vertical scrolling 
-```
+**Brightness mode** changes **keyboard RGB** brightness (per-key and/or underglow), not OS display brightness. Move up to increase, down to decrease. Requires RGB.
 
-## Configuration Syncing
-If you want/need to enable syncing of the charybdis config, such as to read the sniping or drag scroll modes on the other half (e.g. for displaying the status via rgb matrix, or added on screens), you can enabled this. To do so, add this to your `config.h`:
+| Name | Description |
+| --- | --- |
+| `PBRIGHT` | enable brightness mode while the key is held |
+| `PBRIGHT_TOG` | toggle brightness mode on and off |
 
-```c
-#define CHARYBDIS_CONFIG_SYNC
-```
+### Zoom
 
-Please note that you will need to reflash both sides when enabling this.
+**Zoom mode** sends zoom shortcuts used by many apps: move up for `Ctrl`+`+`, down for `Ctrl`+`-`.
+
+| Name | Description |
+| --- | --- |
+| `PZOOM` | enable zoom mode while the key is held |
+| `PZOOM_TOG` | toggle zoom mode on and off |
+
+### Volume
+
+**Volume mode** changes system volume: up increases, down decreases.
+
+| Name | Description |
+| --- | --- |
+| `PVOLUME` | enable volume mode while the key is held |
+| `PVOLUME_TOG` | toggle volume mode on and off |
+
+### Tab switch
+
+**Tab switch** works in apps that use Ctrl+Tab to change tabs. Move **left** for `Ctrl`+`Shift`+`Tab`, **right** for `Ctrl`+`Tab`.
+
+| Name | Description |
+| --- | --- |
+| `PTABS` | enable tab-switch mode while the key is held |
+| `PTABS_TOG` | toggle tab-switch mode on and off |
+
+### History
+
+**History mode** sends undo/redo in apps that use those shortcuts. Move **left** for `Ctrl`+`Z`, **right** for `Ctrl`+`Shift`+`Z`.
+
+| Name | Description |
+| --- | --- |
+| `PHIST` | enable history mode while the key is held |
+| `PHIST_TOG` | toggle history mode on and off |
+
+### Custom
+
+**Custom modes** send a key of your choice per direction (left, right, up, down). Assign the four keys in [Argos][argosdocs] on the pointing-modes screen, or in firmware. There are five custom modes.
+
+| Name | Description |
+| --- | --- |
+| `PCUSTOM1` | enable custom mode 1 while the key is held |
+| `PCUSTOM1_TOG` | toggle custom mode 1 on and off |
+| `PCUSTOM2` / `PCUSTOM2_TOG` | custom mode 2 hold / toggle |
+| `PCUSTOM3` / `PCUSTOM3_TOG` | custom mode 3 hold / toggle |
+| `PCUSTOM4` / `PCUSTOM4_TOG` | custom mode 4 hold / toggle |
+| `PCUSTOM5` / `PCUSTOM5_TOG` | custom mode 5 hold / toggle |
+
+## Shared pointing settings
+
+### DPI
+
+DPI is pointer sensitivity. **Default DPI** applies in normal pointer mode. Each pointing mode also has its own DPI (including precision).
+
+`DPI_MOD` / `DPI_RMOD` cycle the DPI of the **active** mode (hold Shift to reverse direction on `DPI_MOD`, matching firmware). `S_D_MOD` / `S_D_RMOD` always cycle precision DPI.
+
+Values cycle: going past the last step wraps to the first.
+
+In current firmware, default DPI starts at 100 and steps by 100 for 30 steps (up to 3100). Precision DPI starts at 100 and steps by 100 for 20 steps (up to 2100). Factory steps are 6 (700 DPI default) and 4 (500 DPI precision).
+
+While you change DPI on the mouse layer, a bar of RGB LEDs shows the step (Charybdis per-key RGB; Dilemma underglow).
+
+Set DPI in [Argos][argosdocs] without compiling.
+
+### Auto precision on mouse layer
+
+When enabled, entering the mouse layer turns on precision mode. Configure this in [Argos][argosdocs]. This can conflict with auto pointer layer; not all combinations are on by default.
+
+### Auto pointer layer
+
+When enabled, moving the trackball or trackpad activates the mouse layer. Configure this in [Argos][argosdocs].
+
+### Invert axes
+
+Each mode can invert X and/or Y in [Argos][argosdocs] on the pointing-modes screen. `INVX` and `INVY` invert the **currently active** mode from the keyboard.
+
+### Configuration syncing
+
+Configuration syncing is enabled by default on current firmware. It syncs state such as precision or drag-scroll to the other half (RGB, LCD, and similar).
+
+Reflash **both** sides when you rely on this. Drag-scroll can fail if USB is plugged into the secondary half instead of the primary.
 
 ----
 
 [keymaps]: {{site.baseurl}}/fw/default-keymaps.html
 [compile]: {{site.baseurl}}/fw/compile-firmware.html
+[argos]: https://argos.bastardkb.com/
+[argosdocs]: {{site.baseurl}}/fw/argos.html

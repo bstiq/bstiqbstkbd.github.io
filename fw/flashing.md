@@ -50,18 +50,6 @@ The first step is to put your keyboard into bootloader mode. During this time it
 
 There are several ways of initiating bootloader mode:
 
-## QK_BOOT keycode
-
-There exists a dedicated key code that will immediately reboot into the bootloader. This key is present on all default keymaps.
-
-Please refer to the [keymap guide][keymaps] to find the default location of this key for your keyboard.
-
-For example, on the Charybdis the keycode is on the `Nav/Sym` layer:
-
-![](../assets/pics/help/flashing/5.jpg)
-
-Once you've put the keyboard in bootloader mode, you can skip to the [usb drive section](#usb-drive). 
-
 ## Bootmagic
 
 {: .warning }
@@ -77,6 +65,9 @@ To initiate bootmagic:
 - release the key
 
 ![](../assets/pics/help/flashing/4.jpg)
+
+{: .tip }
+If you flash one side with bootmagic, you will also probably need to flash the other side.
 
 Once you've put the keyboard in bootloader mode, you can skip to the [usb drive section](#usb-drive). 
 
@@ -100,11 +91,16 @@ The hardware fallback is an emergency method:
 - if something went wrong while flashing
 - if you accidentally flashed a firmware for a different board
 
-For this, you will need to unscrew the case bottom and locate two through holes, either labelled "BOOT" or unlabelled.
+For this, you will need to unscrew the case bottom and locate, depending on your keyboard:
+- for the Dilemma V3/Dilemma MAX V3: a small button
+- for all other keyboards: two through holes, either labelled "BOOT" or unlabelled.
 
 ![](../assets/pics/help/flashing/1.jpg)
 
-Next, unplug the USB connector, and then bridge the two pads, for example using metallic tweezers. Hold this connection while you plug in the USB connector, and release it shortly afterward.
+Next, unplug the connector and then:
+- press the button. It is stiff, so make sure you feel a "click". Maintain it pressed
+- or, bridge the two pads, for example using metallic tweezers. Hold this connection
+- plug in the USB connector, and release the button or tweezers
 
 Once you've put the keyboard in bootloader mode, you can skip to the [usb drive section](#usb-drive).
 
