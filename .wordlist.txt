@@ -147,3 +147,22 @@ nano
 nanov
 
 behaviours
+behaviour
+bkpd
+
+PBRIGHT
+PZOOM
+PVOLUME
+PTABS
+PHIST
+PCUSTOM
+INVX
+INVY
+trackpads
+
+bklm
+Equaliser
+BKLM
+isqrt
+Ying
+Zhan
